@@ -476,26 +476,15 @@ body.view-only .toolbar-edit{display:none;}
 <!-- Settings Modal -->
 <div class="overlay" id="settingsModal">
   <div class="modal">
-    <h3>⚙ SYNC SETTINGS</h3>
-    <div style="font-size:7px;color:var(--muted);line-height:1.9;margin-bottom:12px;">
-      Sync uses a <b style="color:var(--gold)">GitHub Gist</b>. Data is saved there and loaded on every device.<br>
-      ① Create a token at <b style="color:var(--gold)">github.com/settings/tokens</b> → select <b>gist</b> scope.<br>
-      ② Create a new Gist at <b style="color:var(--gold)">gist.github.com</b> → save the ID from the URL.
-    </div>
-    <div class="settings-row">
-      <label>GitHub Token</label>
-      <input type="password" id="cfgToken" placeholder="ghp_...">
-    </div>
-    <div class="settings-row">
-      <label>Gist ID</label>
-      <input type="text" id="cfgGist" placeholder="abc123def456...">
-    </div>
-    <div style="font-size:7px;color:var(--muted);margin-bottom:10px;">
-      ⚠ Stored locally on this device only. Never shared.
+    <h3>⚙ SYNC STATUS</h3>
+    <div style="font-size:8px;color:var(--muted);line-height:2.2;margin-bottom:14px;">
+      <div>GIST ID &nbsp;<span style="color:var(--green)">✓ CONFIGURED</span></div>
+      <div>TOKEN &nbsp;&nbsp;<span style="color:var(--green)">✓ CONFIGURED</span></div>
+      <div style="margin-top:6px;color:var(--muted);">Sync is automatic — every edit saves to the cloud and loads on all devices.</div>
     </div>
     <div class="modal-btns">
-      <button class="btn btn-muted" onclick="closeModal('settingsModal')">CANCEL</button>
-      <button class="btn btn-green" onclick="testAndSaveSettings()">TEST & SAVE</button>
+      <button class="btn btn-muted" onclick="closeModal('settingsModal')">CLOSE</button>
+      <button class="btn btn-green" onclick="closeModal('settingsModal');doRefresh()">↺ SYNC NOW</button>
     </div>
   </div>
 </div>
@@ -587,13 +576,17 @@ let viewOnlyMode = false;
 let GIST_ID = '', GH_TOKEN = '';
 let syncDirty = false;
 
+// ── Hardcoded defaults (repo is private) ──
+const _DEFAULT_TOKEN = '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';
+const _DEFAULT_GIST  = '8cc93ffc24adb696f35398124f3311c3';
+
 function loadCfg() {
-  GIST_ID  = localStorage.getItem('tozcraft_gist_id')  || '';
-  GH_TOKEN = localStorage.getItem('tozcraft_gh_token') || '';
+  // Always use hardcoded values — repo is private
+  GIST_ID  = _DEFAULT_GIST;
+  GH_TOKEN = _DEFAULT_TOKEN;
 }
 function saveCfg() {
-  localStorage.setItem('tozcraft_gist_id',  GIST_ID);
-  localStorage.setItem('tozcraft_gh_token', GH_TOKEN);
+  // No need to save — values are hardcoded
 }
 
 function defaultData() { return [
@@ -1124,7 +1117,9 @@ function handlePreviewErr(){
 //  SEARCH
 // ══════════════════════════════════════════════════════════
 let _st;
-function onSearch(v){ clearTimeout(_st);_st=setTimeout(()=>render(v),160); }
+function onSearch(v){
+  clearTimeout(_st);_st=setTimeout(()=>render(v),160);
+}
 
 // ══════════════════════════════════════════════════════════
 //  VIEW ONLY
