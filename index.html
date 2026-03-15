@@ -239,7 +239,9 @@ header{
   min-height:54px;
 }
 .slot-row:hover{background:var(--slot-h);border-color:var(--border);}
-.slot-row.empty-slot{opacity:.35;border-style:dashed;}
+.slot-row.empty-slot{border-style:dashed;border-color:#1a3050;}
+.slot-row.empty-slot .slot-middle{opacity:.4;}
+.slot-row.empty-slot .slot-icon-block{opacity:.4;}
 .slot-row.slot-highlight{border-color:var(--gold)!important;background:#1a1200!important;}
 
 /* LEFT: icon block */
@@ -314,7 +316,7 @@ header{
 .act-btn.del-btn:hover{background:#2a0a0a;}
 
 /* VIEW ONLY hides actions + add buttons */
-body.view-only .slot-actions{display:none;}
+body.view-only .slot-actions{display:none!important;}
 body.view-only .g-actions{display:none;}
 body.view-only #fabBtn{display:none;}
 body.view-only .toolbar-edit{display:none;}
@@ -486,6 +488,8 @@ body.view-only .toolbar-edit{display:none;}
       <span class="sub">STORAGE SYSTEM v2.0</span>
     </div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+      <button class="btn btn-muted btn-sm toolbar-edit" id="undoBtn" onclick="doUndo()" disabled style="opacity:.4">↩ UNDO</button>
+      <button class="btn btn-muted btn-sm toolbar-edit" id="redoBtn" onclick="doRedo()" disabled style="opacity:.4">↪ REDO</button>
       <span class="sync-status sync-local" id="syncStatus">● LOCAL</span>
       <button class="btn btn-muted btn-sm" id="viewBtn" onclick="toggleView()">👁 VIEW ONLY</button>
       <button class="btn btn-muted btn-sm" onclick="openSettings()">⚙ SYNC</button>
@@ -501,8 +505,6 @@ body.view-only .toolbar-edit{display:none;}
   <input class="search-box" id="searchBox" placeholder="🔍 Search items..." oninput="onSearch(this.value)" autocomplete="off">
   <button class="btn btn-muted btn-sm" onclick="searchBox.value='';onSearch('')">✕</button>
   <button class="btn btn-muted btn-sm toolbar-edit" onclick="collapseAll()">▼ ALL</button>
-  <button class="btn btn-muted btn-sm toolbar-edit" id="undoBtn" onclick="doUndo()" title="Undo" disabled>↩ UNDO</button>
-  <button class="btn btn-muted btn-sm toolbar-edit" id="redoBtn" onclick="doRedo()" title="Redo" disabled>↪ REDO</button>
 </div>
 
 <!-- ══════════════════════ CONTENT ══════════════════════ -->
@@ -666,8 +668,8 @@ function pushHistory() {
 function updateUndoRedoBtns() {
   const u = document.getElementById('undoBtn');
   const r = document.getElementById('redoBtn');
-  if (u) u.disabled = HISTORY.length === 0;
-  if (r) r.disabled = REDO_STACK.length === 0;
+  if(u){ u.disabled = HISTORY.length===0; u.style.opacity = HISTORY.length===0?'.4':'1'; }
+  if(r){ r.disabled = REDO_STACK.length===0; r.style.opacity = REDO_STACK.length===0?'.4':'1'; }
 }
 
 function doUndo() {
@@ -1018,7 +1020,6 @@ async function gistSave() {
 }
 
 function saveData() {
-  pushHistory();
   localSave();
   gistSave();
 }
@@ -1091,7 +1092,7 @@ function render(filter='') {
           <div class="slot-num">SLOT ${sIdx+1}</div>
           <div class="slot-items">${isEmpty?'<span style="color:#2a4a6a;font-size:7px;">empty</span>':itemTags}</div>
         </div>
-        <div class="slot-actions toolbar-edit">
+        <div class="slot-actions" style="${viewOnlyMode?'display:none':''}">
           <button class="act-btn edit-btn" title="Edit" onclick="openEditSlot(${gIdx},${sIdx})">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M11 2l3 3-8 8H3v-3L11 2z"/></svg>
           </button>
@@ -1181,19 +1182,22 @@ function openEditGroup(gIdx){
 function saveGroup(){
   const name=document.getElementById('gName').value.trim();
   if(!name){toast('Enter a name!');return;}
+  pushHistory();
   if(editGIdx===null){
     DATA.push({name,slots:Array(8).fill(null).map(()=>({items:'(Empty Slot)',icon:''}))});
   }else{ DATA[editGIdx].name=name; }
   saveData();render();closeModal('groupModal');
-  toast(editGIdx===null?'✅ Group added!':'✅ Renamed!');
+  toast(editGIdx===null?'Group added!':'Renamed!');
 }
 function deleteGroup(gIdx){
   if(!confirm(`Delete "${DATA[gIdx].name}"?`)) return;
+  pushHistory();
   DATA.splice(gIdx,1); saveData(); render(); toast('Deleted');
 }
 function moveGroup(gIdx,dir){
   const to=gIdx+dir;
   if(to<0||to>=DATA.length) return;
+  pushHistory();
   [DATA[gIdx],DATA[to]]=[DATA[to],DATA[gIdx]];
   saveData(); render();
 }
@@ -1220,6 +1224,7 @@ function dragEnd(e) {
 function dragDrop(e, toIdx) {
   e.preventDefault();
   if(_dragIdx === null || _dragIdx === toIdx) return;
+  pushHistory();
   const item = DATA.splice(_dragIdx, 1)[0];
   DATA.splice(toIdx, 0, item);
   _dragIdx = null;
@@ -1247,14 +1252,16 @@ function openEditSlot(gIdx,sIdx){
 function saveSlot(){
   if(!editSInfo) return;
   const {gIdx,sIdx}=editSInfo;
+  pushHistory();
   const raw=document.getElementById('sItems').value.trim();
   DATA[gIdx].slots[sIdx].items = raw.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean).join(', ') || '(Empty Slot)';
   DATA[gIdx].slots[sIdx].icon  = document.getElementById('sIcon').value.trim().toLowerCase().replace(/ /g,'_');
-  saveData();render();closeModal('slotModal');toast('✅ Saved!');
+  saveData();render();closeModal('slotModal');toast('Saved!');
 }
 function clearSlot(gIdx,sIdx){
+  pushHistory();
   DATA[gIdx].slots[sIdx]={items:'(Empty Slot)',icon:''};
-  saveData();render();toast('🗑 Cleared');
+  saveData();render();toast('Cleared');
 }
 
 // ══════════════════════════════════════════════════════════
