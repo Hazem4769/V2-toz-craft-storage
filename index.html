@@ -160,23 +160,62 @@ header{
   display:flex;align-items:center;gap:8px;
   padding:10px 12px;
   background:linear-gradient(90deg,#0a1f35,var(--card2));
-  cursor:pointer;
   user-select:none;
   border-bottom:1px solid var(--border);
+  position:relative;
+}
+.g-head-left{
+  display:flex;align-items:center;gap:8px;
+  flex:1;cursor:pointer;min-width:0;
 }
 .g-num{
-  font-size:7px;color:var(--gold);
+  font-size:9px;color:var(--gold);
   background:#1a0a00;
-  border:1px solid #5a3a00;
-  border-radius:2px;
-  padding:3px 6px;
+  border:2px solid #8a5a00;
+  border-radius:3px;
+  padding:4px 8px;
   white-space:nowrap;
-  text-shadow:0 0 8px #ffd70066;
+  text-shadow:0 0 8px #ffd70099;
+  letter-spacing:1px;
+  min-width:38px;
+  text-align:center;
 }
-.g-name{flex:1;font-size:10px;color:var(--text);letter-spacing:0;}
-.g-count{font-size:7px;color:var(--muted);}
-.g-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
+.g-name{flex:1;font-size:10px;color:var(--text);letter-spacing:0;min-width:0;}
+.g-count{font-size:7px;color:var(--muted);white-space:nowrap;}
+.g-arrow{font-size:10px;color:var(--gold);transition:transform .2s;cursor:pointer;padding:4px;}
 .g-card.collapsed .g-arrow{transform:rotate(-90deg);}
+
+/* rename btn inline */
+.g-rename-btn{
+  background:none;
+  border:1px solid #2a4a7f;
+  color:var(--muted);
+  font-size:11px;
+  padding:3px 7px;
+  border-radius:3px;
+  cursor:pointer;
+  transition:all .12s;
+  white-space:nowrap;
+  display:flex;align-items:center;gap:4px;
+  font-family:var(--font);
+  font-size:7px;
+}
+.g-rename-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* drag handle */
+.g-drag-handle{
+  cursor:grab;
+  color:#3a5a7a;
+  font-size:14px;
+  padding:4px 2px;
+  touch-action:none;
+  line-height:1;
+  align-self:stretch;
+  display:flex;align-items:center;
+}
+.g-drag-handle:active{cursor:grabbing;}
+.g-card.dragging{opacity:.4;border:2px dashed var(--gold);}
+.g-card.drag-over{border-color:var(--green);box-shadow:0 0 12px #4ecca333;}
 
 /* group body */
 .g-body{}
@@ -186,34 +225,32 @@ header{
 .slots-list{padding:6px 8px 4px;}
 
 /* ═══════════════════════════════════════════════════
-   SLOT ROW  ← the redesigned part
+   SLOT ROW
 ═══════════════════════════════════════════════════ */
 .slot-row{
   display:flex;
-  align-items:center;
-  gap:0;
+  align-items:stretch;
   background:var(--slot-bg);
   border:1px solid #1a3050;
   border-radius:4px;
   margin-bottom:5px;
   overflow:hidden;
   transition:border .15s, background .15s;
-  min-height:52px;
+  min-height:54px;
 }
 .slot-row:hover{background:var(--slot-h);border-color:var(--border);}
-.slot-row.empty-slot{opacity:.4;border-style:dashed;}
+.slot-row.empty-slot{opacity:.35;border-style:dashed;}
 .slot-row.slot-highlight{border-color:var(--gold)!important;background:#1a1200!important;}
 
 /* LEFT: icon block */
 .slot-icon-block{
-  width:54px;min-width:54px;
+  width:56px;min-width:56px;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  gap:2px;
+  gap:3px;
   padding:6px 4px;
   background:var(--mc-dark);
   border-right:2px solid #1a3050;
-  align-self:stretch;
 }
 .slot-img{
   width:32px;height:32px;
@@ -222,20 +259,21 @@ header{
 }
 .slot-icon-name{
   font-size:5px;
-  color:var(--muted);
+  color:#4a6a8a;
   text-align:center;
-  line-height:1.4;
-  max-width:48px;
-  word-break:break-word;
+  line-height:1.3;
+  max-width:52px;
+  word-break:break-all;
 }
 
 /* MIDDLE: items text */
 .slot-middle{
   flex:1;
-  padding:8px 10px;
+  padding:7px 10px;
   display:flex;flex-direction:column;gap:3px;
+  justify-content:center;
 }
-.slot-num{font-size:6px;color:#3a5a7a;}
+.slot-num{font-size:6px;color:#2a4a6a;margin-bottom:2px;}
 .slot-items{
   font-size:8px;
   color:var(--text);
@@ -243,32 +281,37 @@ header{
 }
 .slot-items .item-tag{
   display:inline-block;
-  background:#0d2137;
+  background:#091c30;
   border:1px solid #1a3555;
   border-radius:2px;
-  padding:1px 5px;
+  padding:2px 6px;
   margin:1px 2px 1px 0;
-  color:#a0c8e8;
+  color:#90b8d8;
   font-size:7px;
 }
 
-/* RIGHT: actions */
+/* RIGHT: actions — clean icon buttons */
 .slot-actions{
-  display:flex;flex-direction:column;gap:3px;
-  padding:6px 6px;
-  align-self:stretch;
-  justify-content:center;
+  display:flex;flex-direction:column;
   border-left:1px solid #1a3050;
-  background:#0a1828;
+  background:#070f1a;
 }
 .act-btn{
-  background:none;border:1px solid transparent;
-  cursor:pointer;font-size:13px;
-  padding:3px 4px;border-radius:3px;
-  transition:all .12s;line-height:1;
+  flex:1;
+  background:none;
+  border:none;
+  cursor:pointer;
+  transition:background .12s;
   display:flex;align-items:center;justify-content:center;
+  min-width:36px;
 }
-.act-btn:hover{background:#1a3050;border-color:#2a4a7f;}
+.act-btn:hover{background:#1a3050;}
+.act-btn + .act-btn{border-top:1px solid #1a3050;}
+.act-btn svg{width:14px;height:14px;stroke-width:2;}
+.act-btn.edit-btn svg{stroke:#7aabcc;}
+.act-btn.del-btn svg{stroke:#e94560;}
+.act-btn.edit-btn:hover{background:#0d2a40;}
+.act-btn.del-btn:hover{background:#2a0a0a;}
 
 /* VIEW ONLY hides actions + add buttons */
 body.view-only .slot-actions{display:none;}
@@ -278,11 +321,41 @@ body.view-only .toolbar-edit{display:none;}
 
 /* group actions bar */
 .g-actions{
-  display:flex;gap:4px;flex-wrap:wrap;
-  padding:6px 8px;
-  background:#0a1020;
+  display:flex;gap:6px;align-items:center;
+  padding:8px 10px;
+  background:#070f1a;
   border-top:1px solid var(--border);
+  flex-wrap:wrap;
 }
+.g-move-btns{
+  display:flex;gap:4px;margin-left:auto;
+}
+.g-move-btn{
+  background:none;
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-size:14px;
+  width:32px;height:32px;
+  border-radius:4px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.g-move-btn:hover{border-color:var(--gold);color:var(--gold);}
+.g-del-btn{
+  background:none;
+  border:1px solid #3a1a1a;
+  color:#e94560;
+  font-family:var(--font);
+  font-size:7px;
+  padding:6px 10px;
+  border-radius:3px;
+  cursor:pointer;
+  display:flex;align-items:center;gap:5px;
+  transition:all .12s;
+}
+.g-del-btn:hover{background:#2a0a0a;border-color:#e94560;}
+.g-del-btn svg{width:12px;height:12px;stroke:#e94560;stroke-width:2;}
 
 /* ═══════════════════════════════════════════════════
    FAB
@@ -968,33 +1041,47 @@ function render(filter='') {
     totalS += g.slots.length;
     filledS += g.slots.filter(s=>!s.items.includes('(Empty Slot)')&&s.items!=='Random').length;
 
+    // ensure always 8 slots
+    while(g.slots.length < 8) g.slots.push({items:'(Empty Slot)',icon:''});
+
     const gHL = fl && gMatch ? ' search-match' : '';
-    html += `<div class="g-card${gHL}" id="gc-${gIdx}">
-      <div class="g-head" onclick="toggleCollapse(${gIdx})">
-        <span class="g-num">G${String(gIdx+1).padStart(2,'0')}</span>
-        <span class="g-name">${escH(g.name)}</span>
-        <span class="g-count">${showSlots.length}/8</span>
-        <span class="g-arrow">▼</span>
+    html += `<div class="g-card${gHL}" id="gc-${gIdx}" draggable="true"
+      ondragstart="dragStart(event,${gIdx})"
+      ondragover="dragOver(event,${gIdx})"
+      ondragend="dragEnd(event)"
+      ondrop="dragDrop(event,${gIdx})">
+      <div class="g-head">
+        <div class="g-drag-handle" title="Drag to reorder">&#8942;&#8942;</div>
+        <div class="g-head-left" onclick="toggleCollapse(${gIdx})">
+          <span class="g-num">G${String(gIdx+1).padStart(2,'0')}</span>
+          <span class="g-name">${escH(g.name)}</span>
+          <span class="g-count">${showSlots.length}/8</span>
+        </div>
+        <button class="g-rename-btn toolbar-edit" onclick="openEditGroup(${gIdx});event.stopPropagation()">
+          <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 2l3 3-8 8H3v-3L11 2z"/></svg>
+          RENAME
+        </button>
+        <span class="g-arrow" onclick="toggleCollapse(${gIdx})">&#9660;</span>
       </div>
       <div class="g-body">
         <div class="slots-list">`;
 
-    showSlots.forEach((slot, rawIdx) => {
+    // always show all 8 slots (or filtered)
+    const displaySlots = (fl && !gMatch) ? matchSlots : g.slots;
+    displaySlots.forEach((slot, rawIdx) => {
       const sIdx = (fl && !gMatch) ? g.slots.indexOf(slot) : rawIdx;
-      const isEmpty = slot.items.includes('(Empty Slot)');
+      const isEmpty = !slot.items || slot.items.includes('(Empty Slot)');
       const url = texURL(slot.icon);
       const hl = fl && ((slot.items||'').toLowerCase().includes(fl)||(slot.icon||'').toLowerCase().includes(fl)) ? ' slot-highlight' : '';
-
-      // Parse items into tags
-      const itemTags = slot.items.split(/,\s*/).map(i=>i.trim()).filter(Boolean)
+      const itemTags = (slot.items||'').split(/,\s*/).map(i=>i.trim()).filter(Boolean)
         .map(i=>`<span class="item-tag">${escH(i)}</span>`).join('');
 
       html += `<div class="slot-row${isEmpty?' empty-slot':''}${hl}" id="sr-${gIdx}-${sIdx}">
         <div class="slot-icon-block">
           <img class="slot-img"
             src="${url||''}"
-            alt="${escH(slot.icon)}"
-            data-icon="${escH(slot.icon)}"
+            alt="${escH(slot.icon||'')}"
+            data-icon="${escH(slot.icon||'')}"
             data-fallback="0"
             onerror="imgFallback(this)"
             ${!url?'style="display:none"':''}>
@@ -1002,22 +1089,29 @@ function render(filter='') {
         </div>
         <div class="slot-middle">
           <div class="slot-num">SLOT ${sIdx+1}</div>
-          <div class="slot-items">${itemTags}</div>
+          <div class="slot-items">${isEmpty?'<span style="color:#2a4a6a;font-size:7px;">empty</span>':itemTags}</div>
         </div>
-        <div class="slot-actions">
-          <button class="act-btn" title="Edit slot" onclick="openEditSlot(${gIdx},${sIdx})">✏️</button>
-          <button class="act-btn" title="Clear slot" onclick="clearSlot(${gIdx},${sIdx})">🗑️</button>
+        <div class="slot-actions toolbar-edit">
+          <button class="act-btn edit-btn" title="Edit" onclick="openEditSlot(${gIdx},${sIdx})">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M11 2l3 3-8 8H3v-3L11 2z"/></svg>
+          </button>
+          <button class="act-btn del-btn" title="Clear" onclick="clearSlot(${gIdx},${sIdx})">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg>
+          </button>
         </div>
       </div>`;
     });
 
     html += `</div>
-        <div class="g-actions">
-          <button class="btn btn-green btn-sm" onclick="addSlot(${gIdx})">+ SLOT</button>
-          <button class="btn btn-gold btn-sm" onclick="openEditGroup(${gIdx})">✏ RENAME</button>
-          <button class="btn btn-muted btn-sm" onclick="moveGroup(${gIdx},-1)">↑</button>
-          <button class="btn btn-muted btn-sm" onclick="moveGroup(${gIdx},1)">↓</button>
-          <button class="btn btn-red btn-sm" onclick="deleteGroup(${gIdx})">🗑 DEL</button>
+        <div class="g-actions toolbar-edit">
+          <div class="g-move-btns">
+            <button class="g-move-btn" title="Move up" onclick="moveGroup(${gIdx},-1)">&#8593;</button>
+            <button class="g-move-btn" title="Move down" onclick="moveGroup(${gIdx},1)">&#8595;</button>
+          </div>
+          <button class="g-del-btn" onclick="deleteGroup(${gIdx})">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"><polyline points="3,5 13,5"/><path d="M6 5V3h4v2M5 5l1 9h4l1-9"/></svg>
+            DELETE GROUP
+          </button>
         </div>
       </div>
     </div>`;
@@ -1095,13 +1189,41 @@ function saveGroup(){
 }
 function deleteGroup(gIdx){
   if(!confirm(`Delete "${DATA[gIdx].name}"?`)) return;
-  DATA.splice(gIdx,1); saveData(); render(); toast('🗑 Deleted');
+  DATA.splice(gIdx,1); saveData(); render(); toast('Deleted');
 }
 function moveGroup(gIdx,dir){
   const to=gIdx+dir;
   if(to<0||to>=DATA.length) return;
   [DATA[gIdx],DATA[to]]=[DATA[to],DATA[gIdx]];
   saveData(); render();
+}
+
+// ── Drag & Drop ──
+let _dragIdx = null;
+function dragStart(e, idx) {
+  _dragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(()=>document.getElementById('gc-'+idx)?.classList.add('dragging'),0);
+}
+function dragOver(e, idx) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.g-card').forEach(c=>c.classList.remove('drag-over'));
+  if(idx !== _dragIdx) document.getElementById('gc-'+idx)?.classList.add('drag-over');
+}
+function dragEnd(e) {
+  document.querySelectorAll('.g-card').forEach(c=>{
+    c.classList.remove('dragging');
+    c.classList.remove('drag-over');
+  });
+}
+function dragDrop(e, toIdx) {
+  e.preventDefault();
+  if(_dragIdx === null || _dragIdx === toIdx) return;
+  const item = DATA.splice(_dragIdx, 1)[0];
+  DATA.splice(toIdx, 0, item);
+  _dragIdx = null;
+  saveData(); render(); toast('↕ Reordered!');
 }
 
 // ══════════════════════════════════════════════════════════
