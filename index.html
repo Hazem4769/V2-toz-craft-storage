@@ -1260,8 +1260,17 @@ function saveSlot(){
 }
 function clearSlot(gIdx,sIdx){
   pushHistory();
-  DATA[gIdx].slots[sIdx]={items:'(Empty Slot)',icon:''};
-  saveData();render();toast('Cleared');
+  const isEmpty = DATA[gIdx].slots[sIdx].items.includes('(Empty Slot)') || !DATA[gIdx].slots[sIdx].items.trim();
+  if(isEmpty){
+    // delete it completely
+    DATA[gIdx].slots.splice(sIdx,1);
+    toast('Slot removed');
+  } else {
+    // has content — just clear it
+    DATA[gIdx].slots[sIdx]={items:'(Empty Slot)',icon:''};
+    toast('Slot cleared');
+  }
+  saveData();render();
 }
 
 // ══════════════════════════════════════════════════════════
