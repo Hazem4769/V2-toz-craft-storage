@@ -416,6 +416,7 @@ body.view-only .toolbar-edit{display:none;}
       <span class="sync-status sync-local" id="syncStatus">● LOCAL</span>
       <button class="btn btn-muted btn-sm" id="viewBtn" onclick="toggleView()">👁 VIEW ONLY</button>
       <button class="btn btn-muted btn-sm" onclick="openSettings()">⚙ SYNC</button>
+      <button class="btn btn-muted btn-sm" id="imgSourceBtn" onclick="openImgSettings()">🖼 IMAGES</button>
       <button class="btn btn-muted btn-sm" onclick="doRefresh()">↺ REFRESH</button>
     </div>
   </div>
@@ -506,8 +507,10 @@ body.view-only .toolbar-edit{display:none;}
 // ══════════════════════════════════════════════════════════
 //  TEXTURE HELPER
 // ══════════════════════════════════════════════════════════
-const CDN_ITEM  = n => `https://cdn.jsdelivr.net/npm/minecraft-assets@1.19/assets/minecraft/textures/item/${n}.png`;
-const CDN_BLOCK = n => `https://cdn.jsdelivr.net/npm/minecraft-assets@1.19/assets/minecraft/textures/block/${n}.png`;
+const CDN_ITEM  = n => `https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.19.2/assets/minecraft/textures/item/${n}.png`;
+const CDN_BLOCK = n => `https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.19.2/assets/minecraft/textures/block/${n}.png`;
+const CDN_ITEM2 = n => `https://cdn.jsdelivr.net/npm/minecraft-assets@1.19/assets/minecraft/textures/item/${n}.png`;
+const CDN_BLOCK2= n => `https://cdn.jsdelivr.net/npm/minecraft-assets@1.19/assets/minecraft/textures/block/${n}.png`;
 
 // Some items only exist as block textures
 const BLOCK_ONLY = new Set([
@@ -573,19 +576,7 @@ const BLOCK_ONLY = new Set([
   'brown_carpet','green_carpet','red_carpet','black_carpet',
 ]);
 
-function texURL(icon) {
-  if (!icon) return null;
-  const n = icon.toLowerCase().replace(/ /g,'_');
-  if (BLOCK_ONLY.has(n)) return CDN_BLOCK(n);
-  return CDN_ITEM(n);
-}
-
-function fallbackURL(icon) {
-  const n = icon.toLowerCase().replace(/ /g,'_');
-  // try the other folder as fallback
-  if (BLOCK_ONLY.has(n)) return CDN_ITEM(n);
-  return CDN_BLOCK(n);
-}
+// texURL and fallbackURL defined below in IMAGE SOURCE SELECTOR section
 
 // ══════════════════════════════════════════════════════════
 //  DATA
@@ -935,7 +926,7 @@ function render(filter='') {
 
   DATA.forEach((g, gIdx) => {
     const gMatch = g.name.toLowerCase().includes(fl);
-    const matchSlots = fl ? g.slots.filter(s=>s.items.toLowerCase().includes(fl)||s.icon.toLowerCase().includes(fl)) : g.slots;
+    const matchSlots = fl ? g.slots.filter(s=>(s.items||'').toLowerCase().includes(fl)||(s.icon||'').toLowerCase().includes(fl)) : g.slots;
     if (fl && !gMatch && matchSlots.length===0) return;
 
     totalG++;
@@ -958,7 +949,7 @@ function render(filter='') {
       const sIdx = (fl && !gMatch) ? g.slots.indexOf(slot) : rawIdx;
       const isEmpty = slot.items.includes('(Empty Slot)');
       const url = texURL(slot.icon);
-      const hl = fl && (slot.items.toLowerCase().includes(fl)||slot.icon.toLowerCase().includes(fl)) ? ' slot-highlight' : '';
+      const hl = fl && ((slot.items||'').toLowerCase().includes(fl)||(slot.icon||'').toLowerCase().includes(fl)) ? ' slot-highlight' : '';
 
       // Parse items into tags
       const itemTags = slot.items.split(/,\s*/).map(i=>i.trim()).filter(Boolean)
@@ -1010,10 +1001,22 @@ function render(filter='') {
 
 function imgFallback(img) {
   const icon = img.dataset.icon;
+  if (!icon) { img.style.display='none'; return; }
   const tried = parseInt(img.dataset.fallback||0);
+  const n = icon.toLowerCase().replace(/ /g,'_');
+  const cap = toInvicon(n);
   if (tried===0) {
     img.dataset.fallback='1';
-    img.src = fallbackURL(icon);
+    // try wiki plain format
+    img.src = `https://minecraft.wiki/images/${cap}.png`;
+  } else if (tried===1) {
+    img.dataset.fallback='2';
+    // try mcasset item
+    img.src = `https://mcasset.cloud/1.19.4/assets/minecraft/textures/item/${n}.png`;
+  } else if (tried===2) {
+    img.dataset.fallback='3';
+    // try mcasset block
+    img.src = `https://mcasset.cloud/1.19.4/assets/minecraft/textures/block/${n}.png`;
   } else {
     img.style.display='none';
   }
@@ -1193,6 +1196,135 @@ function toast(msg){
 }
 
 // ══════════════════════════════════════════════════════════
+//  IMAGE SOURCE SELECTOR
+// ══════════════════════════════════════════════════════════
+// Capitalize first letter of each word for wiki invicon format
+function toInvicon(n) {
+  return n.split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join('_');
+}
+
+const IMG_SOURCES = [
+  {
+    id: 'wiki_invicon',
+    label: '⭐ Minecraft Wiki (Invicons)',
+    desc: 'minecraft.wiki — official inventory icons, most reliable',
+    item:  n => `https://minecraft.wiki/images/Invicon_${toInvicon(n)}.png`,
+    block: n => `https://minecraft.wiki/images/Invicon_${toInvicon(n)}.png`,
+  },
+  {
+    id: 'wiki_plain',
+    label: 'Minecraft Wiki (Plain)',
+    desc: 'minecraft.wiki/images — plain item name format',
+    item:  n => `https://minecraft.wiki/images/${toInvicon(n)}.png`,
+    block: n => `https://minecraft.wiki/images/${toInvicon(n)}.png`,
+  },
+  {
+    id: 'mcasset',
+    label: 'mcasset.cloud',
+    desc: 'mcasset.cloud — dedicated Minecraft asset CDN',
+    item:  n => `https://mcasset.cloud/1.19.4/assets/minecraft/textures/item/${n}.png`,
+    block: n => `https://mcasset.cloud/1.19.4/assets/minecraft/textures/block/${n}.png`,
+  },
+  {
+    id: 'jsdelivr',
+    label: 'jsDelivr CDN',
+    desc: 'cdn.jsdelivr.net — npm minecraft-assets',
+    item:  n => `https://cdn.jsdelivr.net/npm/minecraft-assets@1.19/assets/minecraft/textures/item/${n}.png`,
+    block: n => `https://cdn.jsdelivr.net/npm/minecraft-assets@1.19/assets/minecraft/textures/block/${n}.png`,
+  },
+  {
+    id: 'raw_inventive',
+    label: 'GitHub Raw',
+    desc: 'raw.githubusercontent.com — 1.19.2',
+    item:  n => `https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.19.2/assets/minecraft/textures/item/${n}.png`,
+    block: n => `https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.19.2/assets/minecraft/textures/block/${n}.png`,
+  },
+];
+
+let ACTIVE_SOURCE_ID = localStorage.getItem('tozcraft_img_src') || 'wiki_invicon';
+let selectedSourceId = ACTIVE_SOURCE_ID;
+
+function getActiveSource() {
+  return IMG_SOURCES.find(s=>s.id===ACTIVE_SOURCE_ID) || IMG_SOURCES[0];
+}
+
+// Override texURL to use active source
+function texURL(icon) {
+  if (!icon || typeof icon !== 'string' || icon.trim() === '') return null;
+  const n = icon.toLowerCase().replace(/ /g,'_');
+  const src = getActiveSource();
+  if (BLOCK_ONLY.has(n)) return src.block(n);
+  return src.item(n);
+}
+
+function fallbackURL(icon) {
+  if (!icon || typeof icon !== 'string' || icon.trim() === '') return null;
+  const n = icon.toLowerCase().replace(/ /g,'_');
+  const src = getActiveSource();
+  if (BLOCK_ONLY.has(n)) return src.item(n);
+  return src.block(n);
+}
+
+function openImgSettings() {
+  selectedSourceId = ACTIVE_SOURCE_ID;
+  const list = document.getElementById('srcList');
+  list.innerHTML = IMG_SOURCES.map(s => `
+    <label style="display:flex;align-items:flex-start;gap:8px;background:${s.id===selectedSourceId?'#0d2137':'#0a1020'};border:1px solid ${s.id===selectedSourceId?'var(--gold)':'var(--border)'};border-radius:4px;padding:8px 10px;cursor:pointer;" id="srcOpt_${s.id}" onclick="selectSrc('${s.id}')">
+      <input type="radio" name="imgSrc" value="${s.id}" ${s.id===selectedSourceId?'checked':''} style="margin-top:2px;accent-color:var(--gold);">
+      <div>
+        <div style="font-size:8px;color:${s.id===selectedSourceId?'var(--gold)':'var(--text)'};margin-bottom:3px;">${s.label}</div>
+        <div style="font-size:6px;color:var(--muted);">${s.desc}</div>
+      </div>
+    </label>
+  `).join('');
+  document.getElementById('testLabel').textContent = 'Press TEST to check';
+  document.getElementById('testImg').src = '';
+  openModal('imgModal');
+}
+
+function selectSrc(id) {
+  selectedSourceId = id;
+  // re-render options to show selection
+  document.querySelectorAll('#srcList label').forEach(el => {
+    const isSelected = el.id === 'srcOpt_'+id;
+    el.style.background = isSelected ? '#0d2137' : '#0a1020';
+    el.style.borderColor = isSelected ? 'var(--gold)' : 'var(--border)';
+    el.querySelector('div').style.color = isSelected ? 'var(--gold)' : 'var(--text)';
+  });
+}
+
+function testSelectedSource() {
+  const src = IMG_SOURCES.find(s=>s.id===selectedSourceId);
+  if (!src) return;
+  const testImg = document.getElementById('testImg');
+  const testLabel = document.getElementById('testLabel');
+  testLabel.textContent = 'Loading...';
+  testLabel.style.color = 'var(--gold)';
+  testImg.src = '';
+  const url = src.item('coal');
+  const img = new Image();
+  img.onload = () => {
+    testImg.src = url;
+    testLabel.textContent = '✅ Working! Press APPLY.';
+    testLabel.style.color = 'var(--green)';
+  };
+  img.onerror = () => {
+    testImg.src = '';
+    testLabel.textContent = '❌ Failed — try another source.';
+    testLabel.style.color = 'var(--red)';
+  };
+  img.src = url;
+}
+
+function applyImgSource() {
+  ACTIVE_SOURCE_ID = selectedSourceId;
+  localStorage.setItem('tozcraft_img_src', ACTIVE_SOURCE_ID);
+  closeModal('imgModal');
+  render();
+  toast('✅ Image source applied!');
+}
+
+// ══════════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════════
 (async()=>{
@@ -1206,5 +1338,26 @@ function toast(msg){
   }
 })();
 </script>
+
+<!-- Images Modal -->
+<div class="overlay" id="imgModal">
+  <div class="modal">
+    <h3>🖼 IMAGE SOURCE</h3>
+    <div style="font-size:7px;color:var(--muted);line-height:2;margin-bottom:12px;">
+      Pick a source → TEST → if the coal image loads → APPLY.
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;background:#0a1020;border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-bottom:12px;">
+      <img id="testImg" style="width:32px;height:32px;image-rendering:pixelated;background:#111;border:1px solid #333;" src="" alt="">
+      <span id="testLabel" style="font-size:7px;color:var(--muted);">Press TEST to check</span>
+    </div>
+    <div id="srcList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-muted" onclick="closeModal('imgModal')">CANCEL</button>
+      <button class="btn btn-blue btn-sm" onclick="testSelectedSource()">TEST</button>
+      <button class="btn btn-gold" onclick="applyImgSource()">APPLY</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
