@@ -428,6 +428,8 @@ body.view-only .toolbar-edit{display:none;}
   <input class="search-box" id="searchBox" placeholder="🔍 Search items..." oninput="onSearch(this.value)" autocomplete="off">
   <button class="btn btn-muted btn-sm" onclick="searchBox.value='';onSearch('')">✕</button>
   <button class="btn btn-muted btn-sm toolbar-edit" onclick="collapseAll()">▼ ALL</button>
+  <button class="btn btn-muted btn-sm toolbar-edit" id="undoBtn" onclick="doUndo()" title="Undo" disabled>↩ UNDO</button>
+  <button class="btn btn-muted btn-sm toolbar-edit" id="redoBtn" onclick="doRedo()" title="Redo" disabled>↪ REDO</button>
 </div>
 
 <!-- ══════════════════════ CONTENT ══════════════════════ -->
@@ -575,6 +577,43 @@ let editGIdx = null, editSInfo = null;
 let viewOnlyMode = false;
 let GIST_ID = '', GH_TOKEN = '';
 let syncDirty = false;
+
+// ── Undo / Redo ──
+const HISTORY = [];
+const REDO_STACK = [];
+const MAX_HISTORY = 30;
+
+function pushHistory() {
+  HISTORY.push(JSON.stringify(DATA));
+  if (HISTORY.length > MAX_HISTORY) HISTORY.shift();
+  REDO_STACK.length = 0; // clear redo on new action
+  updateUndoRedoBtns();
+}
+
+function updateUndoRedoBtns() {
+  const u = document.getElementById('undoBtn');
+  const r = document.getElementById('redoBtn');
+  if (u) u.disabled = HISTORY.length === 0;
+  if (r) r.disabled = REDO_STACK.length === 0;
+}
+
+function doUndo() {
+  if (HISTORY.length === 0) return;
+  REDO_STACK.push(JSON.stringify(DATA));
+  DATA = JSON.parse(HISTORY.pop());
+  saveData(); render();
+  updateUndoRedoBtns();
+  toast('↩ Undo!');
+}
+
+function doRedo() {
+  if (REDO_STACK.length === 0) return;
+  HISTORY.push(JSON.stringify(DATA));
+  DATA = JSON.parse(REDO_STACK.pop());
+  saveData(); render();
+  updateUndoRedoBtns();
+  toast('↪ Redo!');
+}
 
 // ── Config ──
 const _a = ['ghp_','22Xd','z6NJ','9mQM','dEK3','Dlqc','Q5bg','HLax','0i2c','vyru'];
@@ -906,8 +945,9 @@ async function gistSave() {
 }
 
 function saveData() {
+  pushHistory();
   localSave();
-  gistSave(); // async, runs in background
+  gistSave();
 }
 
 // ══════════════════════════════════════════════════════════
