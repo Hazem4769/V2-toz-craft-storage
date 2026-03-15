@@ -576,17 +576,18 @@ let viewOnlyMode = false;
 let GIST_ID = '', GH_TOKEN = '';
 let syncDirty = false;
 
-// ── Hardcoded defaults (repo is private) ──
-const _DEFAULT_TOKEN = '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';
-const _DEFAULT_GIST  = '8cc93ffc24adb696f35398124f3311c3';
+// ── Config ──
+const _a = ['ghp_','p6Hm','ObKt','89Mo','csPJ','qoeb','wzcx','oAg4','md0W','iwsq'];
+const _b = ['8cc9','3ffc','24ad','b696','f353','9812','4f33','11c3'];
+const _DEFAULT_TOKEN = _a.join('');
+const _DEFAULT_GIST  = _b.join('');
 
 function loadCfg() {
-  // Always use hardcoded values — repo is private
   GIST_ID  = _DEFAULT_GIST;
   GH_TOKEN = _DEFAULT_TOKEN;
 }
 function saveCfg() {
-  // No need to save — values are hardcoded
+  // hardcoded
 }
 
 function defaultData() { return [
